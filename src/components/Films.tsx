@@ -3,9 +3,10 @@
 import { FC } from 'react'
 import request from 'graphql-request'
 import { useQuery } from 'react-query'
-import { graphql } from '../gql'
+import { FragmentType, graphql } from '../gql'
+import { Film, FilmFragment } from './Film'
 
-const allFilmsWithVariablesQueryDocument = graphql(/* GraphQL */ `
+const FilmsDocument = graphql(`
   query allFilmsWithVariablesQuery($first: Int!) {
     allFilms(first: $first) {
       edges {
@@ -23,12 +24,21 @@ export const Films: FC = () => {
     async () =>
       await request(
         'https://swapi-graphql.netlify.app/.netlify/functions/index',
-        allFilmsWithVariablesQueryDocument,
+        FilmsDocument,
         {
           first: 10,
         }
       )
   )
 
-  return <>{JSON.stringify(data?.allFilms)}</>
+  return (
+    <>
+      {data?.allFilms?.edges?.map((film, index) => (
+        <Film
+          key={index}
+          film={film?.node as FragmentType<typeof FilmFragment>}
+        />
+      ))}
+    </>
+  )
 }
